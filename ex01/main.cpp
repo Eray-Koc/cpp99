@@ -1,7 +1,4 @@
-#include <stack>
-#include <vector>
-#include <iostream>
-#include <sstream>
+#include "MutantStack.hpp"
 
 #define PLUS 1
 #define MULTIPLY 2
@@ -32,31 +29,29 @@ bool isValidArgument(std::string s)
 
 void processNums(std::stack<int>& nums, int op)
 {
-    int result = 0;
+    int a = nums.top();
+    nums.pop();
+    int b = nums.top();
+    nums.pop();
+    int result;
 
     if (op == PLUS)
-    {
-        while (!nums.empty())
-        {
-            result += nums.top();
-            nums.pop();
-        }
-    }
+        result = b + a;
     else if (op == MULTIPLY)
-    {
-        result = 1;
-        while (!nums.empty())
-        {
-            result *= nums.top();
-            nums.pop();
-        }
-    }
+        result = b * a;
     else if (op == DIVISION)
     {
-        
+        if (a == 0)
+        {
+            std::cerr << "Error: Division by zero" << std::endl;
+            exit(1);
+        }
+        result = b / a;
     }
-    nums.push(result);
+    else if (op == MINUS)
+        result = b - a;
 
+    nums.push(result);
 }
 
 int main(int ac, char **av)
@@ -67,7 +62,7 @@ int main(int ac, char **av)
         return (1);
     }
 
-    std::stack<std::string> s;
+    std::stack<std::string> allData;
     std::stack<int> nums;
     std::vector<std::string> args = split(av[1], ' ');
     int i = args.size();
@@ -83,23 +78,37 @@ int main(int ac, char **av)
             std::cerr << "Invalid Argument(s)" << std::endl;
             return (1);
         }
-        s.push(args[i]);
+        allData.push(args[i]);
     }
-    while (!s.empty())
+    while (!allData.empty())
     {
-        if (std::isdigit(s.top()[0]))
+        if (std::isdigit(allData.top()[0]))
         {
-            nums.push(std::atoi(s.top().c_str()));
+            nums.push(std::atoi(allData.top().c_str()));
+        }
+        else if (nums.size() < 2)
+        {
+            std::cerr << "Not enough numbers" << std::endl;
+            return (1);
         }
         else
         {
-
+            if (allData.top()[0] == '+')
+                processNums(nums, PLUS);
+            else if (allData.top()[0] == '*')
+                processNums(nums, MULTIPLY);
+            else if (allData.top()[0] == '/')
+                processNums(nums, DIVISION);
+            else if (allData.top()[0] == '-')
+                processNums(nums, MINUS);
+            else
+            {
+                std::cerr << "Invalid Operator" << std::endl;
+                return (1);
+            }
         }
-        if (nums.size() == 2)
-        {
-
-        }
-        s.pop();
+        allData.pop();
     }
+    std::cout << nums.top() << std::endl;
     return (0);
 }
